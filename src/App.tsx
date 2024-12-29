@@ -6,8 +6,10 @@ import routes from "tempo-routes";
 function App() {
   return (
     <Suspense fallback={<p>Loading...</p>}>
-      <HomePage />
-      {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
+      <div className="min-h-screen bg-background">
+        <HomePage />
+        {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
+      </div>
     </Suspense>
   );
 }

@@ -4,14 +4,31 @@ import HeroBanner from "../components/HeroBanner";
 import CategoryCarousel from "../components/CategoryCarousel";
 import ProductGrid from "../components/ProductGrid";
 import FilterSidebar from "../components/FilterSidebar";
+import { useStore } from "@/lib/store";
+import { fetchCartItems } from "@/lib/queries";
 
 const HomePage = () => {
+  const { user, setCartCount } = useStore();
   const [selectedBrands, setSelectedBrands] = React.useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = React.useState<string[]>([]);
   const [selectedColors, setSelectedColors] = React.useState<string[]>([]);
   const [priceRange, setPriceRange] = React.useState<[number, number]>([
     0, 200,
   ]);
+
+  React.useEffect(() => {
+    if (user) {
+      fetchCartItems(user.id)
+        .then((items) => {
+          setCartCount(items?.length || 0);
+        })
+        .catch((error) => {
+          console.error("Error fetching cart items:", error);
+        });
+    } else {
+      setCartCount(0);
+    }
+  }, [user, setCartCount]);
 
   const handleSearch = (query: string) => {
     console.log("Search query:", query);
@@ -47,7 +64,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Header onSearch={handleSearch} />
       <HeroBanner />
       <CategoryCarousel onCategoryClick={handleCategoryClick} />

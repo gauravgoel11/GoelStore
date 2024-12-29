@@ -1,4 +1,6 @@
 import React from "react";
+import { useStore } from "@/lib/store";
+import { addToCart } from "@/lib/queries";
 import {
   Dialog,
   DialogContent,
@@ -43,8 +45,10 @@ const QuickViewModal = ({
   onOpenChange,
   product = defaultProduct,
 }: QuickViewModalProps) => {
+  const { user } = useStore();
   const [selectedSize, setSelectedSize] = React.useState(product.sizes[0]);
   const [quantity, setQuantity] = React.useState(1);
+  const [selectedImage, setSelectedImage] = React.useState(product.images[0]);
 
   const handleQuantityChange = (type: "increase" | "decrease") => {
     if (type === "increase") {
@@ -54,9 +58,28 @@ const QuickViewModal = ({
     }
   };
 
+  const handleAddToCart = async () => {
+    if (!user) {
+      // Show sign in dialog
+      return;
+    }
+
+    try {
+      await addToCart({
+        userId: user.id,
+        productId: product.id,
+        quantity,
+        size: selectedSize,
+      });
+      onOpenChange?.(false);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white max-w-4xl">
+      <DialogContent className="max-w-4xl bg-white">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             {product.name}
@@ -66,25 +89,26 @@ const QuickViewModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-4">
             <div className="aspect-square overflow-hidden rounded-lg">
               <img
-                src={product.images[0]}
+                src={selectedImage}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             </div>
             <div className="grid grid-cols-4 gap-2">
               {product.images.map((image, index) => (
                 <div
                   key={index}
-                  className="aspect-square overflow-hidden rounded-lg"
+                  className={`aspect-square cursor-pointer overflow-hidden rounded-lg border-2 ${selectedImage === image ? "border-primary" : "border-transparent"}`}
+                  onClick={() => setSelectedImage(image)}
                 >
                   <img
                     src={image}
                     alt={`${product.name} view ${index + 1}`}
-                    className="w-full h-full object-cover cursor-pointer hover:opacity-75 transition"
+                    className="h-full w-full object-cover transition-opacity hover:opacity-75"
                   />
                 </div>
               ))}
@@ -95,7 +119,7 @@ const QuickViewModal = ({
             <p className="text-gray-600">{product.description}</p>
 
             <div>
-              <h3 className="font-semibold mb-3">Select Size</h3>
+              <h3 className="mb-3 font-semibold">Select Size</h3>
               <RadioGroup
                 value={selectedSize}
                 onValueChange={setSelectedSize}
@@ -110,7 +134,7 @@ const QuickViewModal = ({
                     />
                     <Label
                       htmlFor={size}
-                      className="flex items-center justify-center h-10 rounded-md border border-gray-200 peer-data-[state=checked]:border-black peer-data-[state=checked]:bg-black peer-data-[state=checked]:text-white cursor-pointer"
+                      className="flex h-10 cursor-pointer items-center justify-center rounded-md border border-gray-200 peer-data-[state=checked]:border-black peer-data-[state=checked]:bg-black peer-data-[state=checked]:text-white"
                     >
                       {size}
                     </Label>
@@ -144,7 +168,7 @@ const QuickViewModal = ({
                 </div>
               </div>
 
-              <Button className="w-full" size="lg">
+              <Button className="w-full" size="lg" onClick={handleAddToCart}>
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Add to Cart - ${(product.price * quantity).toFixed(2)}
               </Button>
