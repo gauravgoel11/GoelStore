@@ -1,4 +1,3 @@
-import React from "react";
 import { Slider } from "./ui/slider";
 import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";

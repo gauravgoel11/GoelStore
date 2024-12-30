@@ -1,16 +1,7 @@
-import React from "react";
-import { useStore } from "@/lib/store";
-import { addToCart } from "@/lib/queries";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter } from "./ui/card";
 import { Badge } from "./ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
-import { Eye, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 
 interface ProductCardProps {
   id?: string;
@@ -18,7 +9,6 @@ interface ProductCardProps {
   price?: number;
   image?: string;
   sizes?: string[];
-  onQuickView?: (id: string) => void;
   onAddToCart?: (id: string) => void;
 }
 
@@ -28,32 +18,10 @@ const ProductCard = ({
   price = 29.99,
   image = "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&auto=format",
   sizes = ["S", "M", "L"],
-  onQuickView = () => {},
   onAddToCart = () => {},
 }: ProductCardProps) => {
-  const { user } = useStore();
-
-  const handleAddToCart = async () => {
-    if (!user) {
-      // Show sign in dialog
-      return;
-    }
-
-    try {
-      await addToCart({
-        userId: user.id,
-        productId: id,
-        quantity: 1,
-        size: sizes[0],
-      });
-      onAddToCart(id);
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-    }
-  };
-
   return (
-    <Card className="group relative w-[280px] overflow-hidden bg-white transition-all hover:shadow-lg">
+    <Card className="group relative w-full overflow-hidden bg-white transition-all hover:shadow-lg">
       <CardContent className="p-0">
         {sizes.length === 0 && (
           <div className="absolute left-2 top-2 z-10">
@@ -78,41 +46,15 @@ const ProductCard = ({
           />
           <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
             <div className="absolute bottom-4 left-0 flex w-full justify-center space-x-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      disabled={sizes.length === 0}
-                      onClick={() => onQuickView(id)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Quick View</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      disabled={sizes.length === 0}
-                      onClick={handleAddToCart}
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Add to Cart</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={sizes.length === 0}
+                onClick={() => onAddToCart(id)}
+              >
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Add to Cart
+              </Button>
             </div>
           </div>
         </div>

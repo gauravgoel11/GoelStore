@@ -1,17 +1,30 @@
-import { Suspense } from "react";
+import { useEffect } from "react";
 import { useRoutes } from "react-router-dom";
-import HomePage from "./pages/index";
-import routes from "tempo-routes";
+import { useStore } from "@/lib/store";
+import { supabase } from "@/lib/supabase";
+import routes from "./routes";
 
 function App() {
-  return (
-    <Suspense fallback={<p>Loading...</p>}>
-      <div className="min-h-screen bg-background">
-        <HomePage />
-        {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
-      </div>
-    </Suspense>
-  );
+  const { setUser } = useStore();
+  const element = useRoutes(routes);
+
+  useEffect(() => {
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  return element;
 }
 
 export default App;
